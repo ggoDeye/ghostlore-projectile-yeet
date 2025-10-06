@@ -1,24 +1,13 @@
 # Projectile Yeet Mod
 
-This is an experimental mod for Ghostlore that attempts to modify or hide game sprites by intercepting sprite loading methods. Specifically designed to hide visual effects like projectiles, explosions, and AoE effects.
-
-## Overview
-
-The Projectile Yeet mod demonstrates how to:
-
-- Use Harmony to patch Unity's sprite loading methods
-- Hide specific types of visual effects (projectiles, explosions, AoE)
-- Load custom sprites from the mod folder
-- Replace game sprites with custom versions
-- Handle sprite lifecycle management
-- Configure which sprites to hide via JSON configuration
+This is an experimental mod for Ghostlore that hides visual effects of projectiles that scale with the Increased Projectile Radius affix. The mod specifically targets projectiles with the `ScaleToMatchProjectileRadius` component and moves their visual sprites off-screen while preserving their damage functionality.
 
 ## How It Works
 
-1. **Harmony Patching**: The mod uses Harmony to intercept calls to `Sprite.Create` and `Resources.Load`
-2. **Sprite Hiding**: When a sprite is loaded, the mod checks if it should be hidden based on configuration
-3. **Transparent Replacement**: Matching sprites are replaced with transparent versions
-4. **Automatic Hiding**: The mod automatically hides visual effects based on naming patterns
+1. **Harmony Patching**: The mod uses Harmony to intercept Transform position setter calls
+2. **Component Detection**: When a Transform's position is set, the mod checks if the GameObject has a `ScaleToMatchProjectileRadius` component
+3. **Visual Hiding**: For matching projectiles, the mod moves visual sprite children off-screen (Y: -1000)
+4. **Performance Optimization**: Uses caching to avoid repeated processing of the same transforms
 
 ## Files Structure
 
@@ -28,12 +17,9 @@ projectile-yeet/
 ├── ProjectileYeet/
 │   ├── ProjectileYeet.csproj      # Project file
 │   ├── ModLoader.cs               # Main mod entry point
-│   ├── SpritePatcher.cs           # Sprite hiding logic
-│   ├── SpriteLoadingPatch.cs      # Harmony patches for sprite loading
-│   ├── SpriteConfig.cs            # Configuration class
+│   ├── ProjectileYeetPatch.cs     # Harmony patches for Transform position
 │   ├── ModInfo.xml                # Mod metadata
 │   └── Mod Folder/
-│       ├── sprite_config.json     # Configuration file
 │       └── screenshot.png         # Mod screenshot
 └── README.md                      # This file
 ```
@@ -41,69 +27,53 @@ projectile-yeet/
 ## Usage
 
 1. **Build the mod** using Visual Studio or MSBuild
-2. **Configure sprite hiding** by editing `sprite_config.json`
-3. **Enable the mod** in the game's mod manager
-4. **Start the game** and see visual effects hidden based on your configuration
+2. **Enable the mod** in the game's mod manager
+3. **Start the game** and projectiles with `ScaleToMatchProjectileRadius` component will have their visual sprites hidden automatically
 
-## Configuration
+## How It Works
 
-The mod uses `sprite_config.json` to control which sprites are hidden:
+The mod automatically detects and hides visual effects for projectiles that scale with the Increased Projectile Radius affix. No configuration is needed - it works automatically by:
 
-```json
-{
-  "customHiddenSprites": [
-    // List of specific sprites to hide
-    "fireball_projectile",
-    "ice_shard",
-    "lightning_bolt"
-  ],
-  "enableDebugLogging": true, // Enable debug logging
-  "logSpriteReplacements": true // Log when sprites are replaced
-}
-```
-
-### Configuration Options
-
-- **hideProjectiles**: Hides sprites containing "projectile", "bullet", "arrow", "missile"
-- **hideExplosions**: Hides sprites containing "explosion", "blast", "boom", "burst"
-- **hideAoEEffects**: Hides sprites containing "aoe", "area", "zone", "field", "aura"
-- **hideParticleEffects**: Hides sprites containing "particle", "spark", "trail", "smoke"
-- **customHiddenSprites**: Array of specific sprite names to hide
-- **enableDebugLogging**: Shows debug messages in the console
-- **logSpriteReplacements**: Logs when sprites are replaced or hidden
+1. **Monitoring Transform positions**: Intercepts when Transform positions are set
+2. **Component detection**: Checks if the GameObject has a `ScaleToMatchProjectileRadius` component
+3. **Visual hiding**: Moves visual sprite children off-screen while preserving damage functionality
+4. **Performance optimization**: Uses caching to avoid repeated processing
 
 ## Technical Details
 
 ### Harmony Patches
 
-- **SpriteCreatePatch**: Intercepts `Sprite.Create` calls
-- **ResourcesLoadPatch**: Intercepts `Resources.Load` calls for sprites
+- **TransformPositionPatch**: Intercepts `Transform.position` setter calls
+- **Component Detection**: Checks for `ScaleToMatchProjectileRadius` component on GameObjects
 
-### Sprite Loading Process
+### Visual Hiding Process
 
-1. Game requests a sprite
-2. Harmony patch intercepts the call
-3. Mod checks for custom version
-4. Returns custom sprite if found, otherwise original sprite
+1. Transform position is set on a GameObject
+2. Harmony patch intercepts the position setter
+3. Mod checks if GameObject has `ScaleToMatchProjectileRadius` component
+4. If found, moves visual sprite children off-screen (Y: -1000)
+5. Preserves damage functionality while hiding visuals
 
 ## Limitations
 
 - This is a proof-of-concept implementation
-- Sprite replacement may not work for all game sprites
-- Some sprites may be loaded through different methods
-- Performance impact may vary depending on sprite count
+- Only affects projectiles with `ScaleToMatchProjectileRadius` component
+- Visual sprites are moved off-screen but may still consume some resources
+- Performance impact depends on the number of projectiles with scaling components
+- May not work with all projectile types or visual effects
+- May hide unintended projectiles
 
 ## Development Notes
 
 - The mod uses the shared `libs` folder for game DLLs
 - Harmony patches are applied during mod initialization
-- Custom sprites are loaded from the mod's Sprites folder
-- Sprite cleanup is handled when the mod is unloaded
+- Transform caching prevents repeated processing of the same objects
+- Cache cleanup is handled when the mod is unloaded
 
 ## Future Improvements
 
-- More sophisticated sprite matching algorithms
-- Support for sprite atlases
-- Dynamic sprite loading from external sources
-- Better error handling and logging
-- Performance optimizations for large sprite sets
+- More sophisticated component detection algorithms
+- Support for additional scaling components
+- Better performance optimization for high projectile counts
+- Enhanced error handling and logging
+- Dynamic configuration options for different hiding strategies

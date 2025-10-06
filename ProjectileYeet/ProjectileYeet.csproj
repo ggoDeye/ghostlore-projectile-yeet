@@ -41,9 +41,7 @@
     <None Update="Mod Folder\screenshot.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Mod Folder\projectile_config.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+  
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
