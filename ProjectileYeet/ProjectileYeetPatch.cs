@@ -12,11 +12,6 @@ namespace ProjectileYeet
 	[HarmonyPatch]
 	public class ProjectileYeetPatch
 	{
-		// Cache for projectile name checks to avoid repeated string operations
-		private static readonly Dictionary<string, bool> _projectileNameCache = new Dictionary<string, bool>();
-		private static readonly HashSet<string> _hiddenProjectileNames = new HashSet<string>();
-		private static bool _cacheInitialized = false;
-
 		// Cache for processed transforms to avoid repeated expensive operations
 		private static readonly HashSet<Transform> _processedTransforms = new HashSet<Transform>();
 
@@ -24,51 +19,24 @@ namespace ProjectileYeet
 		private static readonly Vector3 _hiddenOffset = new Vector3(0, -1000f, 0);
 
 		/// <summary>
-		/// Initialize the cache with projectile names for faster lookups
+		/// Check if a GameObject has the ScaleToMatchProjectileRadius component
+		/// This component is responsible for the visual scaling effects we want to hide
 		/// </summary>
-		private static void InitializeCache()
+		private static bool HasScaleToMatchProjectileRadiusComponent(GameObject gameObject)
 		{
-			if (_cacheInitialized || ModLoader.Config == null)
-				return;
+			// Get all components on this GameObject and its children
+			Component[] allComponents = gameObject.GetComponentsInChildren<Component>();
 
-			_hiddenProjectileNames.Clear();
-			foreach (string projectileName in ModLoader.Config.HiddenProjectiles)
+			foreach (Component component in allComponents)
 			{
-				_hiddenProjectileNames.Add(projectileName);
-			}
-			_cacheInitialized = true;
-		}
-
-		/// <summary>
-		/// Fast check if a transform name contains any of our target projectile names
-		/// </summary>
-		private static bool IsTargetProjectile(string transformName)
-		{
-			if (!_cacheInitialized)
-				InitializeCache();
-
-			// Check cache first
-			if (_projectileNameCache.TryGetValue(transformName, out bool cachedResult))
-				return cachedResult;
-
-			// Perform the check and cache the result
-			bool isTarget = false;
-			foreach (string projectileName in _hiddenProjectileNames)
-			{
-				if (transformName.Contains(projectileName))
+				// Check if this component's type name matches ScaleToMatchProjectileRadius
+				if (component != null && component.GetType().Name == "ScaleToMatchProjectileRadius")
 				{
-					isTarget = true;
-					break;
+					return true;
 				}
 			}
 
-			// Cache the result (limit cache size to prevent memory issues)
-			if (_projectileNameCache.Count < 1000)
-			{
-				_projectileNameCache[transformName] = isTarget;
-			}
-
-			return isTarget;
+			return false;
 		}
 
 		/// <summary>
@@ -92,27 +60,19 @@ namespace ProjectileYeet
 		}
 
 		/// <summary>
-		/// Intercepts Transform position changes and moves visual sprites of specific projectiles off-screen.
+		/// Intercepts Transform position changes and moves visual sprites of projectiles with ScaleToMatchProjectileRadius component off-screen.
 		/// This keeps the projectile logic intact but hides the visual sprites.
 		/// </summary>
 		[HarmonyPostfix]
 		[HarmonyPatch(typeof(Transform), "position", MethodType.Setter)]
 		static void Postfix(Transform __instance)
 		{
-			// Early exit if config not loaded
-			if (ModLoader.Config == null)
-				return;
-
-			// Initialize cache if needed
-			if (!_cacheInitialized)
-				InitializeCache();
-
 			// Skip if we've already processed this transform
 			if (_processedTransforms.Contains(__instance))
 				return;
 
-			// Fast projectile name check
-			if (!IsTargetProjectile(__instance.name))
+			// Check if this GameObject has the ScaleToMatchProjectileRadius component
+			if (!HasScaleToMatchProjectileRadiusComponent(__instance.gameObject))
 				return;
 
 			// Mark as processed to avoid repeated operations
@@ -120,6 +80,8 @@ namespace ProjectileYeet
 
 			// Hide the visual sprites
 			HideProjectileVisuals(__instance);
+
+			Debug.Log($"[ProjectileYeet] Hidden projectile with ScaleToMatchProjectileRadius: {__instance.name}");
 		}
 
 		/// <summary>
@@ -127,10 +89,8 @@ namespace ProjectileYeet
 		/// </summary>
 		public static void ClearCaches()
 		{
-			_projectileNameCache.Clear();
-			_hiddenProjectileNames.Clear();
 			_processedTransforms.Clear();
-			_cacheInitialized = false;
 		}
 	}
 }
+

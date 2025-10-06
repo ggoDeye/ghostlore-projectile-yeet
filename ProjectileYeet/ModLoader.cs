@@ -1,8 +1,6 @@
 using UnityEngine;
 using HarmonyLib;
 using System.Reflection;
-using Newtonsoft.Json;
-using System.IO;
 
 namespace ProjectileYeet
 {
@@ -13,25 +11,21 @@ namespace ProjectileYeet
 	public class ModLoader : IModLoader
 	{
 		private static Harmony harmony;
-		public static ProjectileConfig Config { get; private set; }
 
 		/// <summary>
 		/// Called when mod is first loaded.
 		/// </summary>
 		public void OnCreated()
 		{
-			Debug.Log("[ProjectileYeet] OnCreated() called - Loading config and applying patches...");
+			Debug.Log("[ProjectileYeet] OnCreated() called - Applying component-based patches...");
 
 			try
 			{
-				// Load configuration
-				LoadConfig();
-
 				// Initialize Harmony for patching with error handling
 				harmony = new Harmony("com.projectile.yeet");
-				Debug.Log("[ProjectileYeet] Harmony created, applying safe patches...");
+				Debug.Log("[ProjectileYeet] Harmony created, applying component-based patches...");
 				harmony.PatchAll(Assembly.GetExecutingAssembly());
-				Debug.Log("[ProjectileYeet] Safe patches applied successfully");
+				Debug.Log("[ProjectileYeet] Component-based patches applied successfully");
 			}
 			catch (System.Exception ex)
 			{
@@ -39,52 +33,6 @@ namespace ProjectileYeet
 			}
 		}
 
-		/// <summary>
-		/// Loads the projectile configuration from JSON file.
-		/// </summary>
-		private void LoadConfig()
-		{
-			try
-			{
-				string configPath = Path.Combine(Application.dataPath, "..", "Mod Folder", "projectile_config.json");
-				if (File.Exists(configPath))
-				{
-					string json = File.ReadAllText(configPath);
-					Config = JsonConvert.DeserializeObject<ProjectileConfig>(json);
-					Debug.Log($"[ProjectileYeet] Config loaded from {configPath}");
-				}
-				else
-				{
-					// Create default config if file doesn't exist
-					Config = new ProjectileConfig();
-					SaveConfig();
-					Debug.Log("[ProjectileYeet] Created default config");
-				}
-			}
-			catch (System.Exception ex)
-			{
-				Debug.LogError($"[ProjectileYeet] Error loading config: {ex.Message}");
-				Config = new ProjectileConfig(); // Use default config on error
-			}
-		}
-
-		/// <summary>
-		/// Saves the projectile configuration to JSON file.
-		/// </summary>
-		private void SaveConfig()
-		{
-			try
-			{
-				string configPath = Path.Combine(Application.dataPath, "..", "Mod Folder", "projectile_config.json");
-				string json = JsonConvert.SerializeObject(Config, Formatting.Indented);
-				File.WriteAllText(configPath, json);
-				Debug.Log($"[ProjectileYeet] Config saved to {configPath}");
-			}
-			catch (System.Exception ex)
-			{
-				Debug.LogError($"[ProjectileYeet] Error saving config: {ex.Message}");
-			}
-		}
 
 		/// <summary>
 		/// Called when mod is unloaded.
