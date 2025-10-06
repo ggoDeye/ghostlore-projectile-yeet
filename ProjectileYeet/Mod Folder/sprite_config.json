@@ -1,0 +1,14 @@
+{
+  "customHiddenSprites": [
+    "Explosion",
+    "Sunder",
+    "Dervish",
+    "Teleport Out",
+    "Teleport In",
+    "Seismic Roar",
+    "Stampede",
+    "Whirlwind"
+  ],
+  "enableDebugLogging": true,
+  "logSpriteReplacements": true
+}

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ModInfo xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <name>Projectile Yeet</name>
+  <description>This is intended for players pushing the depths of hell and maximizing projectile radius. This will let you see the game again instead of explosions/poison. I don't suggest using this unless your total Increased Projectile Radius is greater than 1000%.
+  Experimental mod that attempts to modify game sprites by intercepting certain sprites and moving them off-screen. This is a proof-of-concept and likely has bugs. Backup your saves before using.</description>
+  <activated>false</activated>
+  <publishId>0</publishId>
+</ModInfo>
