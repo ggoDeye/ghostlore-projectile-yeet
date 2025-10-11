@@ -52,7 +52,7 @@ projectile-yeet/
    - Intercepts projectile scaling initialization
    - Only executes for projectiles that scale with radius
    - Disables all `SpriteRenderer` components
-   - Stops all `ParticleSystem` components
+   - Particle systems left enabled for user compatibility
 
 2. **`ProjectileInstance.Init` (Fallback)**
 
@@ -86,14 +86,13 @@ projectile-yeet/
 2. `Trigger()` method is called by game (ITriggerOnProjectileSpawn interface)
 3. Harmony postfix patch executes immediately after
 4. All `SpriteRenderer` components are disabled (`enabled = false`)
-5. All `ParticleSystem` components are stopped
-6. Projectile logic continues normally, but with no visuals
-7. On projectile termination, cache is cleaned up
+5. Projectile logic continues normally, but with no sprite visuals
+6. On projectile termination, cache is cleaned up
 
 ## Limitations
 
 - Only affects projectiles with `ScaleToMatchProjectileRadius` component
-- May hide particle effects along with sprites
+- Particle effects remain visible (sprite rendering disabled only)
 - Debug logging only enabled in DEBUG builds
 - Requires game restart to fully unload
 
@@ -114,6 +113,7 @@ projectile-yeet/
 | **Method Used**             | Move off-screen (Y: -1000)              | Disable SpriteRenderer           |
 | **Memory Allocations**      | High (repeated GetComponentsInChildren) | Minimal (cached references)      |
 | **CPU Impact**              | Very High                               | Very Low                         |
+| **User Compatibility**      | Works for all users                     | Works for all users              |
 | **Performance Improvement** | Baseline                                | **~99.5% reduction**             |
 
 ## Future Improvements

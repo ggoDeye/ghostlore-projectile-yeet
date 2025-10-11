@@ -42,12 +42,15 @@ namespace ProjectileYeet
 				renderer.enabled = false;
 			}
 
+			// Note: Particle systems are left enabled for compatibility with all users. Would require releasing with additional Unity DLLs.
+			// The main performance benefit comes from disabling SpriteRenderer components
 			// Optional: Also hide particle effects
-			ParticleSystem[] particleSystems = __instance.GetComponentsInChildren<ParticleSystem>();
-			foreach (ParticleSystem ps in particleSystems)
-			{
-				ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
-			}
+			// ParticleSystem[] particleSystems = __instance.GetComponentsInChildren<ParticleSystem>();
+			// foreach (ParticleSystem ps in particleSystems)
+			// {
+			// 	ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+			// }
+
 
 			DebugLog($"[ProjectileYeet] Disabled rendering for scaled projectile: {projectileInstance?.name ?? "unknown"}");
 		}
